@@ -1,6 +1,7 @@
 images/
 postgres/
 spark/
+pgdata/
 
 .ruff_cache/
 
