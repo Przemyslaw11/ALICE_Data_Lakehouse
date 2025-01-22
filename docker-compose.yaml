@@ -83,6 +83,7 @@ services:
    volumes:
      - ./conf:/opt/spark/conf
      - ./jars:/opt/spark/jars
+     - ./migration_scripts:/opt/spark/migration_scripts
    networks:
      - dldg
    depends_on:

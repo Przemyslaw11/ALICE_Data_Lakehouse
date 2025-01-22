@@ -160,50 +160,42 @@ spark-submit \
   /path/to/your/script.py
 ```
 
-## Working with Delta Tables
 
-### Download specific files for inspection:
+
+# Extract Data
+
+### AWS CLI Download specific files for inspection:
 ```bash
-aws s3 cp s3://alice-data-lake-temp/trace/year=2024/month=3/part-00221-dc29e0bf-55d2-477c-8b13-a0db388802ef.c000.snappy.parquet \
-    /path/to/local/directory \
-    --profile alice
+aws s3 cp s3://alice-data-lake-temp/trace/year=2024/month=3/{file_name}.parquet /path/to/local/directory --profile alice
 ```
-
-### Create new partitioned Delta table:
-```sql
-CREATE TABLE delta.default.trace (
-    job_id BIGINT,
-    aliencpuefficiency VARCHAR,
-    cputime VARCHAR,
-    host VARCHAR,
-    maxrss BIGINT,
-    cpuefficiency VARCHAR,
-    finaltimestamp TIMESTAMP,
-    masterjobid BIGINT,
-    pid BIGINT,
-    requestedcpus INTEGER,
-    requestedttl BIGINT,
-    runningtimestamp BIGINT,
-    savingtimestamp BIGINT,
-    startedtimestamp BIGINT,
-    walltime INTEGER,
-    maxvirt BIGINT,
-    site VARCHAR,
-    laststatuschangetimestamp BIGINT,
-    year VARCHAR,
-    month VARCHAR
-) WITH (
-    location = 's3a://alice-data-lake-temp/trace/',
-    partitioned_by = ARRAY['year', 'month']
-);
 
 ### Create Delta table on existing bucket:
 ```sql
 CALL delta.system.register_table(
     schema_name => 'default',
     table_name => 'trace',
-    table_location => 's3a://alice-data-lake-temp/trace/'
+    table_location => 's3a://alice-data-lake-temp/raw/trace/'
 );
 ```
 
-### Query using 
+### Get data using Docker/Trino CLI:
+```bash
+docker exec -it trinodb trino
+
+CALL delta.system.register_table(
+    schema_name => 'default',
+    table_name => 'trace',
+    table_location => 's3a://alice-data-lake-temp/raw/trace/'
+);
+Output: "CALL"
+
+SELECT * FROM delta.defult.trace LIMIT 5;
+```
+
+
+### Query data using Spark + Delta Lake
+```bash
+spark-submit `
+  --jars "./jars/delta-core_2.12-2.4.0.jar,./jars/delta-storage-2.4.0.jar,./jars/hadoop-aws-3.2.0.jar,./jars/aws-java-sdk-bundle-1.11.375.jar" `
+  "./migration_scripts/read_migrated_trace_with_delta.py"
+```
