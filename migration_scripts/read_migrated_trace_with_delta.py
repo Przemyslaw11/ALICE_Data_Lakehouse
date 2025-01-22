@@ -2,7 +2,9 @@ from config import AWS_CONFIG
 from logger import setup_logger
 from pyspark.sql import SparkSession
 
+
 logger = setup_logger(__name__)
+
 
 def create_spark_session():
     """Create and configure Spark session."""
@@ -31,6 +33,7 @@ def create_spark_session():
         )
         .getOrCreate())
 
+
 def main():
     """Main function to read Delta table."""
     logger.info("Starting Delta table read operation...")
@@ -39,7 +42,7 @@ def main():
         spark = create_spark_session()
         
         # Path to the Delta table
-        delta_table_path = "s3a://alice-data-lake-temp/trace"
+        delta_table_path = "s3a://alice-data-lake-temp/raw/trace"
         
         logger.info(f"Reading Delta table from: {delta_table_path}")
         
@@ -65,6 +68,7 @@ def main():
         logger.info("Stopping Spark session...")
         spark.stop()
         logger.info("Operation completed")
+
 
 if __name__ == "__main__":
     main()
