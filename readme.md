@@ -120,6 +120,7 @@ Clone the repository to your local machine:
 git clone https://github.com/your-repo/alice-data-lakehouse.git
 cd alice-data-lakehouse
 ```
+---
 
 ### 🔧 Step 3: Configure Environment Variables
 To properly configure the environment, you need to create a `.env` file in the root directory of the project and define the required environment variables. Here's an example:
@@ -133,6 +134,9 @@ METASTORE_DB_USER=postgres
 METASTORE_DB_PASSWORD=postgres
 TRINO_ENDPOINT=http://trinodb:8080
 ```
+
+---
+
 ### ▶️ Step 4: Start the Dockerized Environment
 
 To launch the ALICE Data Lakehouse platform, navigate to the root directory of the project and start all services using Docker Compose:
@@ -142,5 +146,20 @@ docker-compose build
 docker-compose up -d
 ```
 
+---
+### 🔍 Step 5: Verify the Setup
+
+After starting the containers, verify that all services are running and accessible.
+
+
+#### ✅ Check Running Containers
+Run the following command to list all running containers:
+```bash
+docker ps
+```
+
+#### ✅ Connect to Trino
+```bash
+docker exec -it trinodb trino
 
 
