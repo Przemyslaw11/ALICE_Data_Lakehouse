@@ -163,3 +163,20 @@ docker ps
 docker exec -it trinodb trino
 ```
 
+---
+
+## **Usage Examples** 📊  
+
+### **Trino Queries** 🛠️  
+```sql
+-- Register a Delta Lake table
+CALL delta.system.register_table(
+    schema_name => 'default',
+    table_name => 'mytable',
+    table_location => 's3a://my-bucket/path/'
+);
+
+-- Query data
+SELECT * FROM delta.default.mytable LIMIT 5;
+```
+
