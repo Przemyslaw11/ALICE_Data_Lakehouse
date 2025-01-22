@@ -169,15 +169,6 @@ aws s3 cp s3://alice-data-lake-temp/trace/year=2024/month=3/part-00221-dc29e0bf-
     --profile alice
 ```
 
-### Create Delta table on existing bucket:
-```sql
-CALL delta.system.register_table(
-    schema_name => 'default',
-    table_name => 'trace',
-    table_location => 's3a://alice-data-lake-temp/trace/'
-);
-```
-
 ### Create new partitioned Delta table:
 ```sql
 CREATE TABLE delta.default.trace (
@@ -205,4 +196,14 @@ CREATE TABLE delta.default.trace (
     location = 's3a://alice-data-lake-temp/trace/',
     partitioned_by = ARRAY['year', 'month']
 );
+
+### Create Delta table on existing bucket:
+```sql
+CALL delta.system.register_table(
+    schema_name => 'default',
+    table_name => 'trace',
+    table_location => 's3a://alice-data-lake-temp/trace/'
+);
 ```
+
+### Query using 

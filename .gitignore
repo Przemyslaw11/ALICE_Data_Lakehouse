@@ -3,7 +3,7 @@ postgres/
 spark/
 pgdata/
 .idea/
-
+downloaded_data/
 .ruff_cache/
 
 # Environment variables
