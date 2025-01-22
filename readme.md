@@ -1,209 +1,146 @@
-# ALICE_Data_Lakehouse
+# 🚀 ALICE Data Lakehouse
 
-A distributed data lakehouse system designed for processing and analyzing infrastructure monitoring data from the ALICE experiment at CERN. The platform provides researchers with powerful tools for data collection, storage, and analysis while handling high-volume, heterogeneous data streams from grid computing systems.
+A distributed data lakehouse system designed for processing and analyzing infrastructure monitoring data from the ALICE experiment at CERN. The platform provides researchers with advanced tools for data collection, storage, and analysis, enabling the processing of high-volume, heterogeneous data streams from grid computing systems.
 
-## Key Features
-- Distributed data collection system with real-time processing capabilities
-- Scalable data lakehouse architecture supporting both structured and unstructured data
-- Git-like version control for datasets enabling collaborative research
-- Web-based SQL interface optimized for scientific queries
-- Asynchronous data processing pipeline with automated ETL workflows
-- Multi-level access supporting both technical and non-technical users
+---
 
-## Technical Highlights
-- Two-tier architecture separating data ingestion from processing for optimal performance
-- Horizontally scalable components with auto-scaling capabilities
-- Temporary relational storage for raw data with async migration to data lake
-- Advanced data transformation and aggregation pipeline
-- Research-oriented query interface with optimization for scientific workloads
+## 🌟 Key Features
+- **Distributed Data Collection**: Real-time processing of large-scale infrastructure data.
+- **Scalable Architecture**: Supports both structured and unstructured data storage and analysis.
+- **Version Control for Datasets**: Git-like management enabling collaborative research.
+- **Web-Based SQL Interface**: Optimized for scientific queries and research workflows.
+- **Automated ETL Pipelines**: Asynchronous data processing with scheduled workflows.
+- **Multi-Level Access**: Designed for both technical and non-technical users.
 
+---
 
-# Environment Setup Guide
+## 🛠️ Architecture Overview
 
-This guide provides instructions for setting up a development environment with Apache Spark, MinIO (S3-compatible storage), and Trino for data processing and analysis.
+The system consists of multiple containers, each responsible for specific components of the data lakehouse:
 
-## Prerequisites
+### **Services Overview**
 
-- Ubuntu-based system
-- Internet connectivity
-- Sudo privileges
+| Service       | Description                                                                 |
+|---------------|-----------------------------------------------------------------------------|
+| **Postgres**  | Stores metadata for the Hive Metastore.                                     |
+| **Metastore** | Handles table definitions and metadata for data stored in the data lake.    |
+| **Trino**     | SQL query engine for querying data across various storage backends.         |
+| **Spark**     | Distributed data processing engine for ETL and machine learning workflows.  |
+| **Spark Worker** | Executes distributed tasks managed by the Spark master node.            |
 
-## Basic System Setup
+---
 
-1. Configure DNS (if needed):
-   ```bash
-   # Edit resolv.conf
-   sudo nano /etc/resolv.conf
-   
-   # Test connectivity
-   ping google.com
-   ```
+## 🐳 Dockerized Services
 
-2. Update system packages:
-   ```bash
-   sudo apt update
-   ```
+Below is the description of the architecture and the Docker Compose setup:
 
-## Java Installation
+### **Postgres**
+- **Purpose**: Metadata storage for Hive Metastore.
+- **Image**: `postgres:13`
+- **Environment Variables**:
+  - `POSTGRES_DB=metastore`
+  - `POSTGRES_USER=postgres`
+  - `POSTGRES_PASSWORD=postgres`
 
-Install OpenJDK 11:
-```bash
-sudo apt install openjdk-11-jdk
-```
+---
 
-## Apache Spark Setup
+### **Hive Metastore**
+- **Purpose**: Central metadata repository for data lake.
+- **Image**: Custom image `my-hive-metastore:latest`
+- **Environment Variables**:
+  - `DB_DRIVER=postgres`
+  - `METASTORE_DB_HOSTNAME=postgres`
+  - `METASTORE_DB_PORT=5432`
+  - `METASTORE_DB_NAME=metastore`
+  - `METASTORE_DB_USER=postgres`
+  - `METASTORE_DB_PASSWORD=postgres`
 
-1. Download required dependencies:
-   ```bash
-   wget https://archive.apache.org/dist/spark/spark-3.4.1/spark-3.4.1-bin-hadoop3.tgz
-   wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.533/aws-java-sdk-bundle-1.12.533.jar
-   wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
-   wget https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.4.0/delta-core_2.12-2.4.0.jar
-   wget https://repo1.maven.org/maven2/io/delta/delta-storage/2.4.0/delta-storage-2.4.0.jar
-   ```
+---
 
-2. Install Spark:
-   ```bash
-   tar -xvf spark-3.4.1-bin-hadoop3.tgz
-   sudo mv spark-3.4.1-bin-hadoop3 /usr/local/spark
-   ```
+### **Trino**
+- **Purpose**: SQL query engine for large-scale data analysis.
+- **Image**: `trinodb/trino:426`
+- **Environment Variables**:
+  - `AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}`
+  - `AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}`
+  - `AWS_ENDPOINT=https://s3p.cloud.cyfronet.pl`
+  - `AWS_DEFAULT_REGION=us-west-2`
+  - `TRINO_ENDPOINT=http://trinodb:8080`
 
-3. Configure environment variables:
-   ```bash
-   sudo -i
-   echo 'export SPARK_HOME=/usr/local/spark' >> ~/.bashrc
-   echo 'export PATH=$SPARK_HOME/bin:$PATH' >> ~/.bashrc
-   source ~/.bashrc
-   ```
+---
 
-4. Verify installation:
-   ```bash
-   spark-submit --version
-   ```
+### **Spark**
+- **Purpose**: Distributed data processing engine.
+- **Image**: `bitnami/spark:3.4.1`
+- **Mode**: Master and Worker nodes
+- **Environment Variables**:
+  - `SPARK_MODE=master` (for the master container)
+  - `SPARK_MODE=worker` (for worker containers)
+  - `SPARK_MASTER_HOST=spark`
+  - `SPARK_MASTER_PORT=7077`
 
-## MinIO Setup
+---
 
-1. Install MinIO server:
-   ```bash
-   wget https://dl.min.io/server/minio/release/linux-amd64/minio
-   chmod +x minio
-   ```
+### **Networks**
+All services communicate over a dedicated Docker network named `dldg`.
 
-2. Start MinIO server:
-   ```bash
-   ./minio server /local_test/minio-data --console-address ":9001"
-   ```
+---
 
-   Default endpoints:
-   - API: http://192.168.1.1:9000
-   - Console: http://192.168.1.1:9001
+## 📦 Environment Variables
 
-   Default credentials:
-   - AccessKey: minioadmin
-   - SecretKey: minioadmin
+The system requires the following environment variables to be configured in a `.env` file:
 
-3. Configure MinIO client:
-   ```bash
-   wget https://dl.min.io/client/mc/release/linux-amd64/mc
-   chmod +x mc
-   ./mc alias set myminio http://localhost:9000 minioadmin minioadmin
-   ./mc mb myminio/spark-delta-lake
-   ```
-
-## Trino Setup
-
-1. Install required dependencies:
-   ```bash
-   sudo apt install python3 python3-pip
-   
-   # Install Docker using convenience script
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   
-   # Install Docker Compose
-   sudo apt install docker-compose
-   ```
-
-2. Verify installations:
-   ```bash
-   python3 --version
-   docker --version
-   docker-compose --version
-   ```
-
-## Environment Configuration
-
-Create a `.env` file with the following contents:
-```
+```plaintext
 AWS_ACCESS_KEY=your_access_key
 AWS_SECRET_KEY=your_secret_key
-AWS_ENDPOINT=https://s3p.cloud.cyfronet.pl/
+AWS_ENDPOINT=https://s3p.cloud.cyfronet.pl
 AWS_REGION=us-west-2
-METASTORE_HIVE_DIR=s3a://alice-data-lake-temp/
-METASTORE_DB_USER=dataeng
-METASTORE_DB_PASSWORD=dataengineering_user
-TRINO_ENDPOINT=http://trinodb:8080/
-MYSQL_USER=dataeng
-MYSQL_PASSWORD=dataengineering_user
-MYSQL_ROOT_PASSWORD=dataengineering
+METASTORE_DB_USER=postgres
+METASTORE_DB_PASSWORD=postgres
+TRINO_ENDPOINT=http://trinodb:8080
 ```
+---
 
-## Running Spark Scripts
+## 🚀 Quick Start Guide
 
-Use the following template to run Spark scripts with required dependencies:
+Follow these steps to set up and run the ALICE Data Lakehouse platform on your local machine.
+
+---
+
+### ⚙️ Step 1: Install Prerequisites
+Before starting, ensure the following tools are installed on your system:
+1. **Docker**: [Get Docker](https://docs.docker.com/get-docker/)
+2. **Docker Compose**: [Install Docker Compose](https://docs.docker.com/compose/install/)
+
+---
+
+### 📝 Step 2: Clone the Repository
+Clone the repository to your local machine:
 ```bash
-spark-submit \
-  --jars /local_test/data/spark/delta-core_2.12-2.4.0.jar,\
-/local_test/data/spark/delta-storage-2.4.0.jar,\
-/local_test/data/spark/hadoop-aws-3.3.4.jar,\
-/local_test/data/spark/aws-java-sdk-bundle-1.12.533.jar \
-  /path/to/your/script.py
+git clone https://github.com/your-repo/alice-data-lakehouse.git
+cd alice-data-lakehouse
 ```
 
-## Working with Delta Tables
+### 🔧 Step 3: Configure Environment Variables
+To properly configure the environment, you need to create a `.env` file in the root directory of the project and define the required environment variables. Here's an example:
 
-### Download specific files for inspection:
+```plaintext
+AWS_ACCESS_KEY=your_access_key
+AWS_SECRET_KEY=your_secret_key
+AWS_ENDPOINT=https://s3p.cloud.cyfronet.pl
+AWS_REGION=us-west-2
+METASTORE_DB_USER=postgres
+METASTORE_DB_PASSWORD=postgres
+TRINO_ENDPOINT=http://trinodb:8080
+```
+### ▶️ Step 4: Start the Dockerized Environment
+
+To launch the ALICE Data Lakehouse platform, navigate to the root directory of the project and start all services using Docker Compose:
+
 ```bash
-aws s3 cp s3://alice-data-lake-temp/trace/year=2024/month=3/part-00221-dc29e0bf-55d2-477c-8b13-a0db388802ef.c000.snappy.parquet \
-    /path/to/local/directory \
-    --profile alice
+docker-compose build
+docker-compose up -d
 ```
 
-### Create new partitioned Delta table:
-```sql
-CREATE TABLE delta.default.trace (
-    job_id BIGINT,
-    aliencpuefficiency VARCHAR,
-    cputime VARCHAR,
-    host VARCHAR,
-    maxrss BIGINT,
-    cpuefficiency VARCHAR,
-    finaltimestamp TIMESTAMP,
-    masterjobid BIGINT,
-    pid BIGINT,
-    requestedcpus INTEGER,
-    requestedttl BIGINT,
-    runningtimestamp BIGINT,
-    savingtimestamp BIGINT,
-    startedtimestamp BIGINT,
-    walltime INTEGER,
-    maxvirt BIGINT,
-    site VARCHAR,
-    laststatuschangetimestamp BIGINT,
-    year VARCHAR,
-    month VARCHAR
-) WITH (
-    location = 's3a://alice-data-lake-temp/trace/',
-    partitioned_by = ARRAY['year', 'month']
-);
 
-### Create Delta table on existing bucket:
-```sql
-CALL delta.system.register_table(
-    schema_name => 'default',
-    table_name => 'trace',
-    table_location => 's3a://alice-data-lake-temp/trace/'
-);
-```
 
-### Query using 
