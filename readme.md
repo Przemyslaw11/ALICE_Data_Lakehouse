@@ -161,5 +161,5 @@ docker ps
 #### ✅ Connect to Trino
 ```bash
 docker exec -it trinodb trino
-
+```
 
