@@ -2,6 +2,7 @@ images/
 postgres/
 spark/
 pgdata/
+.idea/
 
 .ruff_cache/
 
